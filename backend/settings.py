@@ -7,7 +7,7 @@ load_dotenv()
 
 WORKDIR = Path(__file__).resolve().parent
 DBDIR = WORKDIR / "db" / "jobs_list.db"
-APIKEY = os.getenv("APIKEY")
+APIKEY = os.getenv("APIKEY","AIzaSyBztk6dYHbqiHg4Aah_wOc7oWand7WMRpY")
 TEMP_FILE_STORAGE_DIR = os.getenv("TEMP_FILE_STORAGE_DIR", "/tmp/files")
 
 SUPPORTED_DOCTYPES_MIME = [

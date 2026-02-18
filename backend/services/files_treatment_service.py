@@ -1,3 +1,4 @@
+import json
 import os
 from services.files_content_scrapper import scrap_content_from_file
 import sqlite3
@@ -24,7 +25,7 @@ async def trigger_scrapper_and_summarizer(file_path: str):
         response = await summarize_with_ai(file_content)
 
         if response:
-            update_job(db_cnx, uuid = file_uuid, status= "Traitement terminé : Le contenu est disponible", result=response)
+            update_job(db_cnx, uuid = file_uuid, status= "Traitement terminé : Le contenu est disponible", result=json.dumps(response, ensure_ascii=False) )
         else :
             update_job(db_cnx, uuid = file_uuid, status= "Traitement terminé : Echec du traitement", result="")
     else :

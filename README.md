@@ -5,6 +5,14 @@
 ```
 git clone "https://github.com/OscarPARDON/AI_Doc_Summarizer"
 cd AI_Doc_Summarizer
+```
+
+Puis dans *backend/settings.py*, trouvez la constante APIKEY et renseignez-y une clé API Genia (Google). \
+[Obtenir une clé API GenIA gratuitement](https://aistudio.google.com/api-keys)
+
+Une fois cela effectué, démarrez l'application
+
+```
 docker compose up
 ```
 
@@ -15,11 +23,16 @@ Ajoutez votre document par glisser déposer, ou en cliquant à l'endroit indiqu�
 Une notification située en bas à droite vous informera du bon déroulement de l'opération.
 
 ## Etape 2 : Attendez votre resumé 
-Rendez-vous ensuite dans le volet latéral, attendez quelques secondes pour y trouver votre résumé.
+En parallèle, le volet latéral va s'ouvrir, attendez un instant pour y trouver votre fichier. Cliquez ensuite simplement sur l'onglet de votre fichier pour l'ouvrir.
 
 ## Etape 3 : Consultez votre résumé 
-Une fois le resumé arrivé dans le volet latéral, cliquez simplement sur l'onglet pour ouvrir le resumé complet.
-Vous trouverez alors de nombreuses informations utiles sur le documents.
+Une fois le chargement terminé, le resumé complet s'affichera devant vos yeux.
+Vous trouverez alors de nombreuses informations utiles sur le documents tel que un résumé rapide, la langue d'origine, le type de document et des mots clés.
+
+<img width="1025" height="632" alt="Exemple de resumé" src="https://github.com/user-attachments/assets/4f2bc152-18f5-4a0d-b004-98ccc85f18ba" />
+
+*Exemple de resultat obtenu pour le pdf du* [rapport de Deutsche Bank sur les préoccupations récentes liées à l'IA](https://prod1.www.dbresearch.com/PROD/RI-PROD/PDFVIEWER.calias?pdfViewerPdfUrl=PROD0000000000618988&rwnode=REPORT).
+
 
 # Technologies
 
@@ -40,12 +53,12 @@ Vous trouverez alors de nombreuses informations utiles sur le documents.
 
  # Améliorations
 
- Ceci n'étant qu'un prototype réalisé rapidment, de nombreuses améliorations sont nécéssaires, voici les principales :
+ Ceci n'étant qu'un prototype réalisé rapidement, de nombreuses améliorations sont nécéssaires, voici les principales :
  * Réduction des dépendances
- * Mise en place d'un volume et d'une BDD docker pour la redondance des données
- * Amélioration  de la sécurité (Authentification, Vérif fichier, Config middleware, ...)
+ * Mise en place d'un volume docker pour la redondance des données et d'un système de base de donnée plus robuste.
+ * Amélioration  de la sécurité (Authentification, Config middleware, ...)
  * Implémentation d'une solution IA pro
- * Logging et gestion des erreurs
+ * Logging avancé et gestion des erreurs
  * Création de tests
 
 # Process

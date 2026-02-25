@@ -8,14 +8,13 @@ const route = useRoute();
 const router = useRouter();
 const jobStore = useJobStore();
 const isLoading = ref(true);
-const results = ref(null);
+const job = ref(null);
 
 const fetchResults = () => {
   isLoading.value = true;
-  const data = jobStore.getFinishedJobResult(route.params.jobUuid);
+  const data = jobStore.getJob(route.params.jobUuid);
   if (data) {
-    results.value = data;
-    console.log(results)
+    job.value = data;
     isLoading.value = false;
   } else {
     // If not found, redirect to home or show error
@@ -27,6 +26,14 @@ onMounted(fetchResults);
 
 // Watch for route changes to update the view when clicking another job in sidebar
 watch(() => route.params.jobUuid, fetchResults);
+
+// Watch for changes in the store to update the current job (e.g. after polling update)
+watch(() => jobStore.jobsList, () => {
+  const data = jobStore.getJob(route.params.jobUuid);
+  if (data) {
+    job.value = data;
+  }
+}, { deep: true });
 
 const goHome = () => {
   router.push('/');
@@ -53,23 +60,57 @@ const goHome = () => {
         <p>Chargement du résumé...</p>
       </div>
 
-      <div v-else-if="results" class="summary-container">
-        <div class="summary-card">
+      <div v-else-if="job" class="summary-container">
+        <!-- Filename display for all statuses -->
+        <div class="job-filename">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+          {{ job.filename }}
+        </div>
+
+        <!-- Status 1: Processing -->
+        <div v-if="job.statusCode === 1" class="status-card processing">
+          <div class="status-icon">
+            <div class="loader-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <h2>Veuillez patienter, le fichier est en cours de traitement</h2>
+          <p class="status-message">{{ job.message }}</p>
+        </div>
+
+        <!-- Status 3: Failure -->
+        <div v-else-if="job.statusCode === 3" class="status-card failure">
+          <div class="status-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <h2>Echec du traitement de votre fichier</h2>
+          <p class="status-message">{{ job.message }}</p>
+        </div>
+
+        <!-- Status 2: Success -->
+        <div v-else-if="job.statusCode === 2 && job.result" class="summary-card">
           <div class="card-header">
-            <span class="doc-type">{{ results.type_document }}</span>
-            <span class="doc-lang">{{ results.langue }}</span>
+            <span class="doc-type">{{ job.result.type_document }}</span>
+            <span class="doc-lang">{{ job.result.langue }}</span>
           </div>
 
-          <h1 class="summary-title">{{ results.titre }}</h1>
+          <h1 class="summary-title">{{ job.result.titre }}</h1>
 
           <div class="summary-body">
-            <p class="summary-text">{{ results.resume }}</p>
+            <p class="summary-text">{{ job.result.resume }}</p>
           </div>
 
-          <div class="keywords-section" v-if="results.mots_cles && results.mots_cles.length">
+          <div class="keywords-section" v-if="job.result.mots_cles && job.result.mots_cles.length">
             <h3>Mots-clés</h3>
             <div class="keywords-list">
-              <span v-for="keyword in results.mots_cles" :key="keyword" class="keyword-badge">
+              <span v-for="keyword in job.result.mots_cles" :key="keyword" class="keyword-badge">
                 {{ keyword }}
               </span>
             </div>
@@ -121,10 +162,74 @@ const goHome = () => {
   background: rgba(0, 0, 0, 0.05);
 }
 
+.job-filename {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+
 .summary-container {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+.status-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.status-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.status-message {
+  color: #6b7280;
+  font-size: 1.1rem;
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+.status-icon {
+  margin-bottom: 0.5rem;
+}
+
+/* Loader dots animation from Sidebar */
+.loader-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.loader-dots span {
+  width: 12px;
+  height: 12px;
+  background: #3b82f6;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loader-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loader-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1.0); }
 }
 
 .summary-card {

@@ -28,7 +28,7 @@ export async function getJobUpdate(jobUuid) {
   } catch (error) {
     if (error.status === 404){
       const jobStore = useJobStore()
-      jobStore.removePendingJob(jobUuid)
+      jobStore.removeJob(jobUuid)
     }
     console.error("Erreur Axios :", error);
     return null;

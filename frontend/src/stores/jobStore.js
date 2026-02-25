@@ -6,18 +6,14 @@ let intervalId;
 export const useJobStore = defineStore('jobs', {
   state: () => ({
     displaySidebar: false,
-    pendingJobsList: JSON.parse(localStorage.getItem("savedPendingJobs") || '[]'),
-    finishedJobsList: JSON.parse(localStorage.getItem("savedFinishedJobs") || '[]'),
+    jobsList: JSON.parse(localStorage.getItem("savedJobs") || '[]'),
     loading: false,
   }),
 
   actions: {
-    async getFinishedJobs() {
-      this.finishedJobsList = JSON.parse(localStorage.getItem("savedFinishedJobs") || '[]');
-    },
 
-      async getPendingJobs() {
-      this.pendingJobsList = JSON.parse(localStorage.getItem("savedPendingJobs") || '[]');
+      async getJobs() {
+      this.jobsList = JSON.parse(localStorage.getItem("savedJobs") || '[]');
     },
 
     async toggleSidebar() {
@@ -25,73 +21,53 @@ export const useJobStore = defineStore('jobs', {
         this.displaySidebar = false;
       } else {
         this.loading = true;
-        await this.getFinishedJobs();
-        await this.getPendingJobs();
+        await this.getJobs();
         this.displaySidebar = true;
         this.loading = false;
       }
     },
 
-    async saveFinishedJob(jobUuid, result) {
-      await this.getFinishedJobs();
-      const exists = this.finishedJobsList.find(v => v.jobUuid === jobUuid);
+    async saveJob(jobUuid, filename, statusCode, message, result) {
+      await this.getJobs();
+      const exists = this.jobsList.find(v => v.jobUuid === jobUuid);
       if (!exists) {
-        this.finishedJobsList.push({ jobUuid, result});
-        localStorage.setItem("savedFinishedJobs", JSON.stringify(this.finishedJobsList));
+        this.jobsList.push({ jobUuid, filename, statusCode, message, result});
+        localStorage.setItem("savedJobs", JSON.stringify(this.jobsList));
       }
     },
 
-      async savePendingJob(jobUuid, status, filename) {
-      await this.getPendingJobs();
-      const exists = this.pendingJobsList.find(v => v.jobUuid === jobUuid);
-      if (!exists) {
-        this.pendingJobsList.push({ jobUuid, status, filename});
-        localStorage.setItem("savedPendingJobs", JSON.stringify(this.pendingJobsList));
-      }
+    async removeJob(jobUuid) {
+      await this.getJobs();
+      this.jobsList = this.jobsList.filter(job => job.jobUuid !== jobUuid);
+      localStorage.setItem("savedJobs", JSON.stringify(this.jobsList))
     },
 
-    async removeFinishedJob(jobUuid) {
-      await this.getFinishedJobs();
-      this.finishedJobsList = this.finishedJobsList.filter(job => job.jobUuid !== jobUuid);
-      localStorage.setItem("savedFinishedJobs", JSON.stringify(this.finishedJobsList))
+    getJob(jobUuid){
+      return this.jobsList.find(v => v.jobUuid === jobUuid);
     },
 
-      async removePendingJob(jobUuid) {
-          this.pendingJobsList = this.pendingJobsList.filter(job => job.jobUuid !== jobUuid);
-          localStorage.setItem("savedPendingJobs", JSON.stringify(this.pendingJobsList))
-        },
-
-    getFinishedJobResult(jobUuid){
-      const job = this.finishedJobsList.find(v => v.jobUuid === jobUuid);
-      return job ? job.result : null;
-    },
-
-      async pendingJobsRefresh() {
+      async jobsRefresh() {
         this.loading = true;
-        for (const { jobUuid } of this.pendingJobsList) {
-                const updatedJob = await getJobUpdate(jobUuid);
-                if(updatedJob.result) {
-                    this.saveFinishedJob(jobUuid,updatedJob.result)
-                    this.removePendingJob(jobUuid)
-                }
-                else{
-                    this.removePendingJob(jobUuid)
-                    var filename = this.pendingJobsList.find(v => v.jobUuid === jobUuid).filename;
-                    this.savePendingJob(jobUuid,updatedJob.status,filename)
-                }
+        for (const { jobUuid, statusCode } of this.jobsList) {
+            if(statusCode === 1){
+               const updatedJob = await getJobUpdate(jobUuid);
+               this.removeJob(jobUuid)
+               this.saveJob(jobUuid,updatedJob.filename, updatedJob.status_code, updatedJob.message, updatedJob.result)
+
+            }
         }
         this.loading = false;
     },
 
-    startPendingJobsPolling(intervalMs = 10 * 1000) {
+    startJobsPolling(intervalMs = 10 * 1000) {
       if (intervalId) clearInterval(intervalId);
-      this.pendingJobsRefresh();
+      this.jobsRefresh();
       intervalId = setInterval(() => {
-        this.pendingJobsRefresh();
+        this.jobsRefresh();
       }, intervalMs);
     },
 
-    stopPendingJobsPolling() {
+    stopJobsPolling() {
       if (intervalId) clearInterval(intervalId);
     }
   }

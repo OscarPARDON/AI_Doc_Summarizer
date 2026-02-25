@@ -18,8 +18,6 @@
     <div v-if="savedStore.loading" class="loading-container">
       <div class="loading-spinner">
         <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
       </div>
       <div class="loading-text">
         <div class="loading-title">Chargement des données</div>
@@ -30,37 +28,42 @@
     <div v-else class="sidebar-content">
       <div class="sidebar-header">
         <h2 class="sidebar-title">Vos résumés</h2>
-        <div class="item-count">{{ savedStore.pendingJobsList.length + savedStore.finishedJobsList.length }} résumé{{ savedStore.pendingJobsList.length + savedStore.finishedJobsList.length !== 1 ? 's' : '' }}</div>
+        <div class="item-count">{{ savedStore.jobsList.length }} résumé{{ savedStore.jobsList.length !== 1 ? 's' : '' }}</div>
       </div>
 
       <div class="items-list">
-        <div v-if="savedStore.pendingJobsList.length + savedStore.finishedJobsList.length === 0" class="empty-state">
+        <div v-if="savedStore.jobsList.length === 0" class="empty-state">
           <div class="empty-icon">📑</div>
           <p>Aucun résumé</p>
           <small>Importez un fichier pour obtenir son résumé</small>
         </div>
 
-        <router-link v-for="job in savedStore.finishedJobsList" :key="job.jobUuid" :to="`/summary/${job.jobUuid}`" custom v-slot="{ navigate, href }">
+        <router-link v-for="job in savedStore.jobsList" :key="job.jobUuid" :to="`/summary/${job.jobUuid}`" custom v-slot="{ navigate, href }">
         <div @click="navigate" class="summary-item">
-          <div class="summary-header">
+          <div v-if="job.statusCode === 2" class="summary-header">
             <div class="summary-title">{{ job.result.titre }}</div>
-            <button @click.stop="savedStore.removeFinishedJob(job.jobUuid)" class="remove-btn">
+            <button @click.stop="savedStore.removeJob(job.jobUuid)" class="remove-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12"></path>
               </svg>
             </button>
           </div>
+          <div v-else-if="job.statusCode === 1" class="summary-header">
+                <div class="summary-title">{{ job.filename }}</div>
+                <div class="loader-dots">
+                  <span></span><span></span><span></span>
+                </div>
+            </div>
+          <div v-else class="summary-header">
+                <div class="summary-title">{{ job.filename }}</div>
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+            </div>
+
         </div>
         </router-link>
 
-        <div v-for="job in savedStore.pendingJobsList" :key="job.jobUuid"  class="summary-item pending">
-          <div class="summary-header">
-            <div class="summary-title">{{ job.fileTitle }}</div>
-            <div class="loader-dots">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -118,11 +121,11 @@ const handleSwipe = () => {
 };
 
 onMounted(() => {
-  savedStore.startPendingJobsPolling();
+  savedStore.startJobsPolling();
 });
 
 onUnmounted(() => {
-  savedStore.stopPendingJobsPolling();
+  savedStore.stopJobsPolling();
 });
 </script>
 

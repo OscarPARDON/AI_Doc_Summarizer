@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import uploadFile from "@/services/fileUploadService.js";
-
+import { useJobStore } from '@/stores/jobStore.js'
 const isDragging = ref(false);
 const fileInput = ref(null);
 const notification = ref(null); // { type: 'success' | 'error', message: string }
@@ -19,6 +19,7 @@ const handleUpload = (file) => {
 
   uploadFile(file, {
     onSuccess: (uuid) => {
+
       showNotification('success', `Fichier "${file.name}" importé avec succès !`);
     },
     onError: (error) => {
@@ -28,8 +29,11 @@ const handleUpload = (file) => {
 };
 
 const handleFileChange = (event) => {
+  const jobStore = useJobStore()
   const file = event.target.files[0];
   handleUpload(file);
+  jobStore.toggleSidebar()
+
 };
 
 const onDrop = (event) => {

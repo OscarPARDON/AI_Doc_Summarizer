@@ -25,7 +25,7 @@ export default function uploadFile(file, options = {}) {
       const urlStr = upload.url;
       const uuid = new URL(urlStr).pathname.split('/').filter(Boolean).pop();
       
-      jobStore.savePendingJob(uuid, "En cours de traitement : Document importé avec succès", upload.file.name);
+      jobStore.saveJob(uuid, upload.file.name, 1, "Fichier envoyé, en cours de traitement...", "");
       console.log('Download %s from %s', upload.file.name, upload.url);
       
       if (onSuccess) onSuccess(uuid);

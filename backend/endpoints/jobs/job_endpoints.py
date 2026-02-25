@@ -24,7 +24,8 @@ async def follow_job_status(job_id: str)->JSONResponse:
         return JSONResponse(status_code=HTTP_200_OK, content={
             "uuid": job["uuid"],
             "filename": job["filename"],
-            "status": job["status"],
+            "status_code": job["status_code"],
+            "message": job["message"],
             "result": job["result"]
         })
     # If no job with this UUID is found, return a 404 not found

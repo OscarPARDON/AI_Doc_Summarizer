@@ -1,3 +1,5 @@
+import logging
+import os
 import re
 import extract_msg
 import magic
@@ -8,6 +10,7 @@ from bs4 import BeautifulSoup
 import email
 from settings import SUPPORTED_DOCTYPES_MIME
 
+logger = logging.getLogger(__name__)
 
 def detect_file_type(file_path: str) -> Union[str, bool]:
     """
@@ -24,6 +27,7 @@ def detect_file_type(file_path: str) -> Union[str, bool]:
     if file_mime in SUPPORTED_DOCTYPES_MIME :
         return file_mime
 
+    logger.warning(msg=f"{os.path.basename(file_path)} : Unsupported filetype")
     return False
 
 

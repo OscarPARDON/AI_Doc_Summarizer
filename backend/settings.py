@@ -1,6 +1,6 @@
 import os
+from enum import IntFlag
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,6 +9,11 @@ WORKDIR = Path(__file__).resolve().parent
 DBDIR = WORKDIR / "db" / "jobs_list.db"
 TEMP_FILE_STORAGE_DIR = "/tmp/files"
 MAX_FILE_SIZE = 128_000_000 # 128 Mo
+
+class STATUS_CODES(IntFlag):
+    Pending = 1
+    Success = 2
+    Failure = 3
 
 APIKEY = os.getenv("APIKEY","AIzaSyBztk6dYHbqiHg4Aah_wOc7oWand7WMRpY")
 MODEL_PROMPT = """Tu ne vas recevoir que le contenu de fichiers.
@@ -32,3 +37,5 @@ SUPPORTED_DOCTYPES_MIME = [
     "message/rfc822",
     "application/vnd.ms-outlook"
 ]
+
+LOG_LEVEL = "INFO"

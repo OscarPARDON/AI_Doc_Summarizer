@@ -1,9 +1,11 @@
 import json
+import logging
 import re
 from typing import Union
 from google import genai
 from settings import APIKEY, MODEL_PROMPT
 
+logger = logging.getLogger(__name__)
 
 async def summarize_with_ai(file_content: str) -> Union[str, bool] :
     """ Send the content of the file to the AI API for summarization, return the result"""
@@ -26,6 +28,7 @@ async def summarize_with_ai(file_content: str) -> Union[str, bool] :
             ]
         )
     except Exception as e:
+        logger.exception(msg=f"Error in gemini api call : {e}")
         return False
 
     # Extract and clean the response
@@ -38,6 +41,8 @@ async def summarize_with_ai(file_content: str) -> Union[str, bool] :
             parsed_json = json.loads(cleaned)
             return parsed_json
         except json.JSONDecodeError as e:
+            logger.exception(msg=f"Gemini response serializing error : {e}")
             return False
 
+    logger.warning(msg="Empty response from gemini API")
     return False
